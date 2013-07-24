@@ -23,10 +23,10 @@
 	<script type="text/javascript">
 		var localStream;
 		navigator.webkitGetUserMedia({ audio: false, video: true }, function (stream) {
-    		$('video#local').attr('src', URL.createObjectURL(stream));
-    		localStream = stream;
-    		var connection = new app.webRTC('ws://localhost:12345');
-    		connection.connect('hejhej'); // room name hejhej
+			$('video#local').attr('src', URL.createObjectURL(stream));
+			localStream = stream;
+			var connection = new app.webRTC('ws://localhost:12345');
+			connection.connect('hejhej'); // room name hejhej
 		});
 	</script>
 </head>
