@@ -5,7 +5,6 @@ var app = (function(app, io, window) {
 		});
 		var config = {"iceServers": [{"url": "stun:stun.l.google.com:19302"}]};
 		this.peerConnection = new webkitRTCPeerConnection(config);
-		this.peerConnection.addStream(localStream); // localStream => global from index.html
 	};
 	app.webRTC.prototype.connect = function(roomId, success, error) {	
 		this.bindEvents();
@@ -15,6 +14,9 @@ var app = (function(app, io, window) {
 		else {
 			error && error('You need a room to connect to');
 		}
+	};
+	app.webRTC.prototype.addStream function(s) {
+		this.peerConnection.addStream(localStream);
 	};
 	app.webRTC.prototype.bindEvents = function() {
 		var that = this;
