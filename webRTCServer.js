@@ -11,7 +11,6 @@ Room.prototype.addMember = function(socket) {
 	});
 	socket.on('answer', function(data) {
 		that.broadcast('answer', data, socket);
-		that.requestICEFromAll();
 	});
 	socket.on('ice', function(data) {
 		that.broadcast('ice', data, socket);
@@ -59,6 +58,7 @@ Server.prototype.bindEvents = function() {
 				room.addMember(socket);
 				if(room.memberSockets.length > 1) {
 					room.requestOfferFromOne();
+					that.requestICEFromAll();
 				}
 			}
 			that.rooms[data.roomId] = room;
