@@ -15,8 +15,8 @@ var app = (function(app, io, window) {
 			error && error('You need a room to connect to');
 		}
 	};
-	app.webRTC.prototype.addStream function(s) {
-		this.peerConnection.addStream(localStream);
+	app.webRTC.prototype.addStream = function(s) {
+		this.peerConnection.addStream(s);
 	};
 	app.webRTC.prototype.bindEvents = function() {
 		var that = this;
