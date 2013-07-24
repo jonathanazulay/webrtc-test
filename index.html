@@ -1,0 +1,108 @@
+<!doctype html>
+<html>
+<head>
+	<title></title>
+	<style>
+		body, html {
+			margin: 0;
+			padding: 0;
+			height: 100%;
+		}
+		video,div {
+			margin: 0;
+			padding: 0;
+		}
+		div {
+			padding: 50px;
+			background: rgb(20,20,20);
+		}
+	</style>
+	<script src="//cdnjs.cloudflare.com/ajax/libs/socket.io/0.9.5/socket.io.min.js"></script>
+	<script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+	<script type="text/javascript">
+		var app = (function(app, io, window) {
+			app.webRTC = function(socketURL) {
+				this.socket = io.connect(socketURL, {
+					reconnect: false
+				});
+				var config = {"iceServers": [{"url": "stun:stun.l.google.com:19302"}]};
+				this.peerConnection = new webkitRTCPeerConnection(config);
+				this.peerConnection.addStream(localStream);
+			};
+			app.webRTC.prototype.connect = function(roomId, success, error) {	
+				this.bindEvents();
+				if(roomId) {
+					this.socket.emit('join-room', { 'roomId': roomId });
+				}
+				else {
+					error && error('You need a room to connect to');
+				}
+			};
+			app.webRTC.prototype.bindEvents = function() {
+				var that = this;
+				that.peerConnection.onaddstream = function(event) {	
+					console.log('add stream');
+					console.log(event.stream);
+					$('video#remote').attr('src', URL.createObjectURL(event.stream));
+				};
+				this.socket.on('send-offer', function() {
+					that.sendOffer();
+				});
+				this.socket.on('send-ice', function() {
+					that.peerConnection.onicecandidate = function(event) {
+						that.socket.emit('ice', event.candidate);
+					};
+				});
+				this.socket.on('offer', function(data) {
+					console.log('received offer');
+					console.log(data);
+					that.peerConnection.setRemoteDescription(new RTCSessionDescription(data));
+					that.sendAnswer();
+				});
+				this.socket.on('answer', function(data) {
+					console.log('received answer');
+					that.peerConnection.setRemoteDescription(new RTCSessionDescription(data));
+				});
+				this.socket.on('ice', function(data) {
+					console.log('received ice');
+					if(!data) { return; }
+					console.log(data);
+					that.peerConnection.addIceCandidate(new RTCIceCandidate({
+						candidate: data.candidate,
+						sdpMLineIndex: data.sdpMLineIndex
+					}));
+				});
+			};
+			app.webRTC.prototype.sendOffer = function() {
+				console.log('send offer');
+				var that = this;
+				this.peerConnection.createOffer(function(desc) {
+					that.peerConnection.setLocalDescription(desc);
+					that.socket.emit('offer', desc);
+				}, null, { 'mandatory': { 'OfferToReceiveAudio': false, 'OfferToReceiveVideo': true } });
+			};
+			app.webRTC.prototype.sendAnswer = function() {
+				console.log('send answer');
+				var that = this;
+				this.peerConnection.createAnswer(function(desc) {
+					that.peerConnection.setLocalDescription(desc);
+					that.socket.emit('answer', desc);
+				}, null, { 'mandatory': { 'OfferToReceiveAudio': false, 'OfferToReceiveVideo': true } });
+			};
+			return app;
+		})(app || {}, io, this);
+
+		var localStream;
+		navigator.webkitGetUserMedia({ audio: false, video: true }, function (stream) {
+    		$('video#local').attr('src', URL.createObjectURL(stream));
+    		localStream = stream;
+    		var connection = new app.webRTC('ws://192.168.1.134:12345');
+    		connection.connect('hejhej');
+		});
+	</script>
+</head>
+<body>
+	<div style="position:absolute;top:0;bottom:0;left:0;right:50%;"><video id="local" style="width:100%;height:100%;" autoplay></video></div>
+	<div style="position:absolute;top:0;bottom:0;right:0;left:50%;"><video id="remote" style="width:100%;height:100%;" autoplay></video></div>
+</body>
+</html>
