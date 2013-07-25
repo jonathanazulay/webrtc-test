@@ -38,7 +38,7 @@ Room.prototype.broadcast = function(message, data, exceptSocket) {
 };
 var Server = function() {
 	this.io = null;
-	this.rooms = {};
+	this.roomForId = {};
 	this.roomForSocket = {};
 };
 Server.prototype.listen = function(port) {
@@ -49,7 +49,7 @@ Server.prototype.bindEvents = function() {
 	var that = this;
 	this.io.sockets.on('connection', function (socket) {
 		socket.on('join-room', function(data) {
-			var room = that.rooms[data.roomId];
+			var room = that.roomForId[data.roomId];
 			if(!room) {
 				room = new Room(data.roomId);
 				room.addMember(socket);
@@ -61,21 +61,23 @@ Server.prototype.bindEvents = function() {
 					that.requestICEFromAll();
 				}
 			}
-			that.rooms[data.roomId] = room;
+			that.roomForId[data.roomId] = room;
 			that.roomForSocket[socket] = room;
 		});
 		socket.on('disconnect', function() {
 			var room = that.getRoomForSocket(socket);
-			that.roomForSocket[socket] && that.roomForSocket[socket].removeMember(socket);
-			if(room && (room.memberSockets.length === 0)) {
-				that.removeRoom(room.id)
+			if(room) {
+				room.removeMember(socket);
+				if(room.memberSockets.length === 0) {
+					that.removeRoom(room.id);
+				}
 			}
 			delete that.roomForSocket[socket];
 		});
 	});
 };
 Server.prototype.removeRoom = function(roomId) {
-	delete this.rooms[roomId];
+	delete this.roomForId[roomId];
 };
 Server.prototype.getRoomForSocket = function(socket) {
 	return this.roomForSocket[socket];
