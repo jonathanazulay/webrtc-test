@@ -23,7 +23,7 @@
 	<script type="text/javascript">
 		navigator.webkitGetUserMedia({ audio: false, video: true }, function (stream) {
 			$('video#local').attr('src', URL.createObjectURL(stream));
-			var connection = new app.webRTC('ws://localhost:12345');
+			var connection = new app.webRTC('ws://macbookpro:12345');
 			connection.addStream(stream);
 			connection.connect('hejhej'); // room name hejhej
 		});

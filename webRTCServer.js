@@ -58,7 +58,7 @@ Server.prototype.bindEvents = function() {
 				room.addMember(socket);
 				if(room.memberSockets.length > 1) {
 					room.requestOfferFromOne();
-					that.requestICEFromAll();
+					room.requestICEFromAll();
 				}
 			}
 			that.roomForId[data.roomId] = room;
