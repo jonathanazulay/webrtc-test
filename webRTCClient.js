@@ -4,7 +4,7 @@ var app = (function(app, io, window) {
 			reconnect: false
 		});
 		var config = {"iceServers": [{"url": "stun:stun.l.google.com:19302"}]};
-		this.peerConnection = new webkitRTCPeerConnection(config);
+		this.peerConnection = new RTCPeerConnection(config);
 	};
 	app.webRTC.prototype.connect = function(roomId, success, error) {	
 		this.bindEvents();
@@ -16,14 +16,23 @@ var app = (function(app, io, window) {
 		}
 	};
 	app.webRTC.prototype.addStream = function(s) {
-		this.peerConnection.addStream(s);
+		var that = this;
+		if(s.constructor == Object) {
+			getUserMedia(s, function (stream) {
+				attachMediaStream($('video#local')[0], stream);
+				that.peerConnection.addStream(stream);
+			});
+		} 
+		else {
+			attachMediaStream($('video#local')[0], s);
+			this.peerConnection.addStream(s);
+		}
 	};
 	app.webRTC.prototype.bindEvents = function() {
 		var that = this;
 		that.peerConnection.onaddstream = function(event) {	
 			console.log('add stream');
-			console.log(event.stream);
-			$('video#remote').attr('src', URL.createObjectURL(event.stream));
+			attachMediaStream($('video#remote')[0], event.stream);
 		};
 		this.socket.on('send-offer', function() {
 			that.sendOffer();
@@ -35,7 +44,6 @@ var app = (function(app, io, window) {
 		});
 		this.socket.on('offer', function(data) {
 			console.log('received offer');
-			console.log(data);
 			that.peerConnection.setRemoteDescription(new RTCSessionDescription(data));
 			that.sendAnswer();
 		});
