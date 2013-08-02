@@ -5,8 +5,8 @@
 	<style>
 		body, html {
 			margin: 0;
-			padding: 0;
 			height: 100%;
+			background: rgb(20,20,20);
 		}
 		video,div {
 			margin: 0;
@@ -14,23 +14,57 @@
 		}
 		div {
 			padding: 50px;
-			background: rgb(20,20,20);
+		}
+		#inputs {
+			margin: 10px;
 		}
 	</style>
+	<script type="text/javascript" src="adapter.js"></script>
 	<script src="//cdnjs.cloudflare.com/ajax/libs/socket.io/0.9.5/socket.io.min.js"></script>
 	<script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
 	<script src="webRTCClient.js"></script>
 	<script type="text/javascript">
-		navigator.webkitGetUserMedia({ audio: false, video: true }, function (stream) {
-			$('video#local').attr('src', URL.createObjectURL(stream));
-			var connection = new app.webRTC('ws://macbookpro:12345');
-			connection.addStream(stream);
-			connection.connect('hejhej'); // room name hejhej
+		var connection;
+		function connect() {
+			connection = new app.webRTC('ws://macbookpro.local:12345');
+			connection.connect($('input[type=text]').val());
+			console.log($('input[type=text]').val());
+		}
+		function addStream() {
+			connection.addStream({video: true, audio: false});
+		}
+		$(document).ready(function() {
+			$('input[type=button]').click(function() {
+				if(this.value === 'Add stream') {
+					if(!connection) {
+						this.disabled = false;
+						this.value = 'Connect';
+						return;
+					}
+					addStream();
+					this.disabled = true;
+				}
+				else {
+					connect();
+					console.log(this);
+					this.disabled = true;
+					this.value='Hang on...';
+					var that = this;
+					setTimeout(function() {
+						that.disabled = false;
+						that.value = 'Add stream';
+					}, 2000);
+				}
+			})
 		});
 	</script>
 </head>
 <body>
-	<div style="position:absolute;top:0;bottom:0;left:0;right:50%;"><video id="local" style="width:100%;height:100%;" autoplay></video></div>
-	<div style="position:absolute;top:0;bottom:0;right:0;left:50%;"><video id="remote" style="width:100%;height:100%;" autoplay></video></div>
+	<section id="inputs">
+		<input type="text" value="Room" />
+		<input type="button" value="Connect..." />
+	</section>
+	<div style="position:absolute;top:0;bottom:0;left:0;right:50%;margin-top:30px;"><video id="local" style="width:100%;height:100%;" autoplay></video></div>
+	<div style="position:absolute;top:0;bottom:0;right:0;left:50%;margin-top:30px;"><video id="remote" style="width:100%;height:100%;" autoplay></video></div>
 </body>
 </html>
