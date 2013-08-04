@@ -7,6 +7,9 @@
 			margin: 0;
 			height: 100%;
 			background: rgb(20,20,20);
+			color: rgb(230,230,230);
+			font-family: sans-serif;
+			font-size: 11px;
 		}
 		video,div {
 			margin: 0;
@@ -26,9 +29,8 @@
 	<script type="text/javascript">
 		var connection;
 		function connect() {
-			connection = new app.webRTC('ws://macbookpro.local:12345');
-			connection.connect($('input[type=text]').val());
-			console.log($('input[type=text]').val());
+			connection = new app.webRTC('ws://macbookpro:12345');
+			connection.connect($('input[name=myId]').val(), $('input[name=partnerId]').val());
 		}
 		function addStream() {
 			connection.addStream({video: true, audio: false});
@@ -46,7 +48,6 @@
 				}
 				else {
 					connect();
-					console.log(this);
 					this.disabled = true;
 					this.value='Hang on...';
 					var that = this;
@@ -55,13 +56,15 @@
 						that.value = 'Add stream';
 					}, 2000);
 				}
-			})
+			});
+			$('input[name=myId]').val(Math.random().toString(36).substring(2,3));
 		});
 	</script>
 </head>
 <body>
 	<section id="inputs">
-		<input type="text" value="Room" />
+		Your id (reload page if not unique): <input name="myId" type="text" value="user1" />
+		<input name="partnerId" type="text" value="user2" />
 		<input type="button" value="Connect..." />
 	</section>
 	<div style="position:absolute;top:0;bottom:0;left:0;right:50%;margin-top:30px;"><video id="local" style="width:100%;height:100%;" autoplay></video></div>
