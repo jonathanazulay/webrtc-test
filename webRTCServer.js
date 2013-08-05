@@ -1,45 +1,27 @@
 var io = require('socket.io');
-var Room = function(id) {
-	this.id = id;
-	this.memberSockets = [];
-};
-Room.prototype.addMember = function(socket) {
-	this.memberSockets.push(socket);
-	var that = this;
-	socket.on('offer', function(data) {
-		that.broadcast('offer', data, socket);
-	});
-	socket.on('answer', function(data) {
-		that.broadcast('answer', data, socket);
-	});
-	socket.on('ice', function(data) {
-		that.broadcast('ice', data, socket);
-	});
-};
-Room.prototype.removeMember = function(socket) {
-	var indexOfSocket = this.memberSockets.indexOf(socket);
-	if(indexOfSocket !== -1) {
-		this.memberSockets.splice(indexOfSocket, 1);
-	}
-};
-Room.prototype.requestOfferFromOne = function() {
-	this.memberSockets[0].emit('send-offer');
-};
-Room.prototype.requestICEFromAll = function() {
-	this.broadcast('send-ice', {});
-};
-Room.prototype.broadcast = function(message, data, exceptSocket) {
-	for (var i = this.memberSockets.length - 1; i >= 0; i--) {
-		var sendTo = this.memberSockets[i];
-		if(sendTo !== exceptSocket) {
-			sendTo.emit(message, data);
+var _ = require('underscore');
+
+var socketsById = {};
+var partnersBySocket = {};
+function disconnectSocket(socket) {
+	delete partnersBySocket[socket.id];
+	for(aSocket in socketsById) {
+		if(socketsById[aSocket] === socket) {
+			delete socketsById[aSocket];
 		}
-	};
-};
+	}
+}
+function getPartnerForSocket(socket) {
+	var partnerId = partnersBySocket[socket.id];
+	var partnerSocket = socketsById[partnerId];
+	if(partnerSocket) {
+		console.log(socket.id + ' frågar efter ' + partnerSocket.id);
+	}
+	return partnerSocket;
+}
+
 var Server = function() {
 	this.io = null;
-	this.roomForId = {};
-	this.roomForSocket = {};
 };
 Server.prototype.listen = function(port) {
 	this.io = io.listen(port, {log:false});
@@ -48,38 +30,42 @@ Server.prototype.listen = function(port) {
 Server.prototype.bindEvents = function() {
 	var that = this;
 	this.io.sockets.on('connection', function (socket) {
-		socket.on('join-room', function(data) {
-			var room = that.roomForId[data.roomId];
-			if(!room) {
-				room = new Room(data.roomId);
-				room.addMember(socket);
+		socket.on('connect', function(data) {
+			console.log('\n=> connection from ' + socket.id);
+			socketsById[data.myId] = socket;
+			console.log(_.size(partnersBySocket) + ':' + _.size(socketsById));
+			partnersBySocket[socket.id] = data.partnerId;
+			var partnerSocket = getPartnerForSocket(socket);
+			console.log(_.size(partnersBySocket) + ':' + _.size(socketsById));
+			if(partnerSocket) {
+				console.log("Yeehaa ur partner is online! I'll ask him for an webrtc offer");
+				that.requestOfferFromSocket(partnerSocket);
 			}
 			else {
-				room.addMember(socket);
-				if(room.memberSockets.length > 1) {
-					room.requestOfferFromOne();
-					room.requestICEFromAll();
-				}
+				console.log("Your partner is not online :( I'll ask him for an webrtc offer whenever he connects");
 			}
-			that.roomForId[data.roomId] = room;
-			that.roomForSocket[socket] = room;
+		});
+		socket.on('offer', function(data) {
+			console.log('\n=> offer');
+			var partnerSocket = getPartnerForSocket(socket);
+			partnerSocket && partnerSocket.emit('offer', data);
+		});
+		socket.on('answer', function(data) {
+			console.log('\n=> answer');
+			var partnerSocket = getPartnerForSocket(socket);
+			partnerSocket && partnerSocket.emit('answer', data);
+		});
+		socket.on('ice', function(data) {
+			console.log('\n=> ice');
+			var partnerSocket = getPartnerForSocket(socket);
+			partnerSocket && partnerSocket.emit('ice', data);
 		});
 		socket.on('disconnect', function() {
-			var room = that.getRoomForSocket(socket);
-			if(room) {
-				room.removeMember(socket);
-				if(room.memberSockets.length === 0) {
-					that.removeRoom(room.id);
-				}
-			}
-			delete that.roomForSocket[socket];
+			disconnectSocket(socket);
 		});
 	});
 };
-Server.prototype.removeRoom = function(roomId) {
-	delete this.roomForId[roomId];
-};
-Server.prototype.getRoomForSocket = function(socket) {
-	return this.roomForSocket[socket];
+Server.prototype.requestOfferFromSocket = function(socket) {
+	socket && socket.emit('send-offer');
 };
 module.exports = Server;

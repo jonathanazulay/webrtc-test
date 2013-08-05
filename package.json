@@ -3,6 +3,7 @@
   "description": "Testing webrtc features",
   "version": "0.5.0",
   "dependencies": {
-    "socket.io": "*"
+    "socket.io": "*",
+    "underscore": "*"
   }
 }
