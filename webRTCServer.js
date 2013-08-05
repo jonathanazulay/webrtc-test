@@ -8,7 +8,6 @@ function disconnectSocket(socket) {
 	for(aSocket in socketsById) {
 		if(socketsById[aSocket] === socket) {
 			delete socketsById[aSocket];
-			console.log('rensade upp en..');
 		}
 	}
 }
@@ -33,7 +32,6 @@ Server.prototype.bindEvents = function() {
 	this.io.sockets.on('connection', function (socket) {
 		socket.on('connect', function(data) {
 			console.log('\n=> connection from ' + socket.id);
-			console.log(data);
 			socketsById[data.myId] = socket;
 			console.log(_.size(partnersBySocket) + ':' + _.size(socketsById));
 			partnersBySocket[socket.id] = data.partnerId;
@@ -44,7 +42,7 @@ Server.prototype.bindEvents = function() {
 				that.requestOfferFromSocket(partnerSocket);
 			}
 			else {
-				console.log("Your partner is not online :( I'll ask him for an webrtc offer whenever comes online");
+				console.log("Your partner is not online :( I'll ask him for an webrtc offer whenever he connects");
 			}
 		});
 		socket.on('offer', function(data) {

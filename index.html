@@ -29,7 +29,7 @@
 	<script type="text/javascript">
 		var connection;
 		function connect() {
-			connection = new app.webRTC('ws://macbookpro:12345');
+			connection = new app.webRTC('ws://'+window.location.hostname+':12345');
 			connection.connect($('input[name=myId]').val(), $('input[name=partnerId]').val());
 		}
 		function addStream() {
@@ -63,7 +63,7 @@
 </head>
 <body>
 	<section id="inputs">
-		Your id (reload page if not unique): <input name="myId" type="text" value="user1" />
+		Your id (reload page if not unique): <input name="myId" type="text" value="user1" disabled />
 		<input name="partnerId" type="text" value="user2" />
 		<input type="button" value="Connect..." />
 	</section>
