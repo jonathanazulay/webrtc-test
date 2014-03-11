@@ -1,0 +1,74 @@
+<!doctype html>
+<html>
+<head>
+    <title></title>
+    <style>
+        body, html {
+            margin: 0;
+            height: 100%;
+            background: rgb(230,230,230);
+            color: rgb(0,0,0);
+            font-family: sans-serif;
+            font-size: 11px;
+        }
+        video,div {
+            margin: 0;
+            padding: 0;
+        }
+        div {
+            padding: 50px;
+        }
+        #inputs {
+            margin: 10px;
+        }
+        button {
+            border-radius: 5px;
+            background: blue;
+            color: white;
+            background-color: #0d74fe;
+            border-width: 1px;
+            border-color: #0958c1;
+            text-align: center;
+            font-size: 14px;
+        }
+        button:disabled {
+            background: gray;
+        }
+        button:focus {
+            outline: none;
+        }
+        .hej {
+            font-size: 150%;
+            color: black;
+            position: absolute;
+            background: white;
+            padding: 20px 0;
+            text-align: center;
+            right: 40%;
+            left: 40%;
+            -webkit-box-shadow: 0 0 10px 1px rgba(0,0,0,0.4);
+            box-shadow: 0 0 10px 1px rgba(0,0,0,0.4);
+        }
+        video {
+            transition: opacity 1s;
+            opacity: 1;
+        }
+        video.hidden {
+            opacity: 0.3;
+        }
+        video.hidden#remote {
+            opacity: 0.0;
+        }
+    </style>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/socket.io/0.9.5/socket.io.min.js"></script>
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+    <script src="assets/react.js"></script>
+    <script src="assets/JSXTransformer.js"></script>
+    <script src="assets/reactComponents.jsx" type="text/jsx"></script>
+    <script src="assets/client.js"></script>
+    <script src="assets/adapter.js"></script>
+    <script src="assets/main.jsx" type="text/jsx"></script>
+</head>
+<body>
+</body>
+</html>
